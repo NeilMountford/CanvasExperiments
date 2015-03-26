@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas grid</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #gridCanvas {
+            z-index: 0;
+        }
+
+        #squareCanvas {
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gridCanvas"></canvas>
+    <canvas id="squareCanvas"></canvas>
+
+    <script type="text/javascript">
+        (function() {
+            var gridCanvas = document.getElementById("gridCanvas");
+            var squareCanvas = document.getElementById("squareCanvas");
+            var gridContext = gridCanvas.getContext("2d");
+            var squareContext = squareCanvas.getContext("2d");
+            var distanceBetweenLines = 20;
+            var previous = null;
+            var squares = [
+                { x: 5, y: 3, state: 'zombeh'},
+                { x: 20, y: 8, state: 'zombeh'},
+                { x: 6, y: 7, state: 'human'},
+                { x: 4, y: 15, state: 'zombeh'},
+                { x: 12, y: 17, state: 'human'},
+                { x: 19, y: 34, state: 'zombeh'},
+                { x: 28, y: 19, state: 'zombeh'},
+                { x: 36, y: 1, state: 'human'},
+                { x: 22, y: 23, state: 'zombeh'}
+            ];
+
+            window.addEventListener("resize", resizeCanvas, false);
+
+            function resizeCanvas() {
+                gridCanvas.width = window.innerWidth;
+                gridCanvas.height = window.innerHeight;
+
+                squareCanvas.width = window.innerWidth;
+                squareCanvas.height = window.innerHeight;
+
+                drawGrid();
+                drawSquares();
+            }
+
+            function animate(highResTimestamp) {
+                if(!previous) {
+                    previous = highResTimestamp;
+                }
+                var progress = highResTimestamp - previous;
+
+                if(progress >= 2000) {
+                    moveSquares();
+                    drawSquares();
+                    previous = highResTimestamp;
+                }
+
+                window.requestAnimationFrame(animate);
+            }
+
+            function moveSquares() {
+                for(var squareIdx = 0, square; square = squares[squareIdx++];) {
+                    square.x++;
+                    square.y++;
+                }  
+            }
+
+            function drawSquares() {
+                squareContext.clearRect(0, 0, squareCanvas.width, squareCanvas.height);
+                for(var squareIdx = 0, square; square = squares[squareIdx++];) {
+                    squareContext.fillStyle = square.state === 'zombeh' ? '#009900' : '#000099';
+                    squareContext.fillRect(square.x * distanceBetweenLines, square.y * distanceBetweenLines, distanceBetweenLines, distanceBetweenLines);
+                }              
+            }
+
+            function drawGrid() {
+                var w = gridCanvas.width;
+                var h = gridCanvas.height;
+
+                gridContext.beginPath();
+                gridContext.strokeStyle = "#999999";
+                gridContext.lineWidth = 0.3;
+
+                var x = distanceBetweenLines;
+                while(x <= w) {
+                    gridContext.moveTo(x, 0);
+                    gridContext.lineTo(x, h);
+                    x += distanceBetweenLines;
+                }
+
+                var y = distanceBetweenLines;
+                while(y <= h) {
+                    gridContext.moveTo(0, y);
+                    gridContext.lineTo(w, y);
+                    y += distanceBetweenLines;
+                }
+                
+                gridContext.stroke();
+            }
+
+            resizeCanvas();
+            window.requestAnimationFrame(animate);
+        })();
+    </script>
+</body>
+</html>
