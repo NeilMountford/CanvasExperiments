@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas grid</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        #gridCanvas {
+            z-index: 0;
+        }
+
+        #squareCanvas {
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gridCanvas"></canvas>
+    <canvas id="squareCanvas"></canvas>
+
+    <script type="text/javascript">
+        (function() {
+            var gridCanvas = document.getElementById("gridCanvas");
+            var squareCanvas = document.getElementById("squareCanvas");
+            var gridContext = gridCanvas.getContext("2d");
+            var squareContext = squareCanvas.getContext("2d");
+            var distanceBetweenLines = 20;
+            var previous = null;
+            var mySquare = { x: 5, y: 3, colour: '#009900', owner: true, movement: 'right'};
+            var squares = [
+                { x: 3, y: 3, colour: '#990000', owner: false },
+                { x: 30, y: 3, colour: '#990000', owner: false }
+            ];
+
+            window.addEventListener("resize", resizeCanvas, false);
+
+            function resizeCanvas() {
+                gridCanvas.width = window.innerWidth;
+                gridCanvas.height = window.innerHeight;
+
+                squareCanvas.width = window.innerWidth;
+                squareCanvas.height = window.innerHeight;
+
+                drawGrid();
+                drawSquares();
+            }
+
+            function animate(highResTimestamp) {
+                if(!previous) {
+                    previous = highResTimestamp;
+                }
+                var progress = highResTimestamp - previous;
+
+                if(progress > 100) {
+                    handleCollisions();
+                    if(mySquare.movement === 'right') {
+                        mySquare.x++;
+                    }
+                    else if(mySquare.movement === 'left') {
+                        mySquare.x--;
+                    }
+                    previous = highResTimestamp;
+                }
+
+                drawSquares();
+                window.requestAnimationFrame(animate);
+            }
+
+            function drawSquares() {
+                squareContext.clearRect(0, 0, squareCanvas.width, squareCanvas.height);
+                squareContext.fillStyle = mySquare.colour;
+                squareContext.fillRect(mySquare.x * distanceBetweenLines, mySquare.y * distanceBetweenLines, distanceBetweenLines, distanceBetweenLines);
+
+                for(var squareIdx = 0, square; square = squares[squareIdx++];) {
+                    squareContext.fillStyle = square.colour;
+                    squareContext.fillRect(square.x * distanceBetweenLines, square.y * distanceBetweenLines, distanceBetweenLines, distanceBetweenLines);
+                }              
+            }
+
+            function drawGrid() {
+                var w = gridCanvas.width;
+                var h = gridCanvas.height;
+
+                gridContext.beginPath();
+                gridContext.strokeStyle = "#999999";
+                gridContext.lineWidth = 0.3;
+
+                var x = distanceBetweenLines;
+                while(x <= w) {
+                    gridContext.moveTo(x, 0);
+                    gridContext.lineTo(x, h);
+                    x += distanceBetweenLines;
+                }
+
+                var y = distanceBetweenLines;
+                while(y <= h) {
+                    gridContext.moveTo(0, y);
+                    gridContext.lineTo(w, y);
+                    y += distanceBetweenLines;
+                }
+
+                gridContext.stroke();
+            }
+
+            function keyHandler(keyEvent) {
+                if (keyEvent.keyCode == '38') {
+                    // up arrow
+                    mySquare.y--;
+                }
+                else if (keyEvent.keyCode == '40') {
+                    // down arrow
+                    mySquare.y++;
+                }
+                else if (keyEvent.keyCode == '37') {
+                    // left arrow
+                    mySquare.x--;
+                }
+                else if (keyEvent.keyCode == '39') {
+                    // right arrow
+                    mySquare.x++;
+                }
+            }  
+
+            function handleCollisions() {
+                for(var i = 0, square; square = squares[i++];) {
+                    if(mySquare.movement === 'right' && mySquare.x + 1 === square.x && mySquare.y === square.y) {
+                        mySquare.movement = 'left';
+                    }
+                    else if(mySquare.movement === 'left' && mySquare.x - 1 === square.x && mySquare.y === square.y) {
+                        mySquare.movement = 'right';
+                    }
+                }
+            }
+
+            resizeCanvas();
+            document.addEventListener("keydown", keyHandler);
+            window.requestAnimationFrame(animate);
+        })();
+    </script>
+</body>
+</html>
