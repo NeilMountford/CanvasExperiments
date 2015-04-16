@@ -95,6 +95,7 @@
             function drawGrid() {
                 var w = gridCanvas.width;
                 var h = gridCanvas.height;
+                gridContext.clearRect(0, 0, w, h);
 
                 gridContext.beginPath();
                 gridContext.strokeStyle = "#999999";
